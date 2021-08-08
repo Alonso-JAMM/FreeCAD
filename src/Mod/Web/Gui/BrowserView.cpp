@@ -49,6 +49,7 @@
 # include <QPointer>
 # include <QDir>
 # include <QLineEdit>
+# include <QTemporaryFile>
 #endif
 
 
@@ -83,6 +84,7 @@ using QWebEnginePage = QWebPage;
 #include <Gui/OnlineDocumentation.h>
 #include <Gui/DownloadManager.h>
 #include <Gui/TextDocumentEditorView.h>
+#include <Gui/CustomEditor.h>
 
 #include <Base/Parameter.h>
 #include <Base/Exception.h>
@@ -648,14 +650,23 @@ void BrowserView::onViewSource(const QUrl &url)
 {
     Q_UNUSED(url);
     view->page()->toHtml([=](const QString &pageSource){
-        QPlainTextEdit *editorWidget = new QPlainTextEdit {};
-        App::TextDocument *txtDoc = new App::TextDocument;
-        TextDocumentEditorView *textDocView = new TextDocumentEditorView {
-                txtDoc,
-                editorWidget, getMainWindow()};
-        editorWidget->setReadOnly(true);
-        editorWidget->setPlainText(pageSource);
-        getMainWindow()->addWindow(textDocView);
+        if (Gui::CustomEditor::isEnabled()) {
+            QTemporaryFile filePageSource(QLatin1String("./pageSourceXXXXXX.html"));
+            if (filePageSource.open()) {
+                filePageSource.write(pageSource.toLocal8Bit());
+                Gui::CustomEditor::openTextFile(filePageSource.fileName());
+            }
+        }
+        else {
+            QPlainTextEdit *editorWidget = new QPlainTextEdit {};
+            App::TextDocument *txtDoc = new App::TextDocument;
+            TextDocumentEditorView *textDocView = new TextDocumentEditorView {
+                    txtDoc,
+                    editorWidget, getMainWindow()};
+            editorWidget->setReadOnly(true);
+            editorWidget->setPlainText(pageSource);
+            getMainWindow()->addWindow(textDocView);
+        }
     });
 }
 #else
@@ -696,14 +707,24 @@ void BrowserView::onViewSource(const QUrl &url)
     if (!view->page() || !view->page()->currentFrame())
         return;
     QString pageSource = view->page()->currentFrame()->toHtml();
-    QPlainTextEdit *editorWidget = new QPlainTextEdit {};
-    App::TextDocument *txtDoc = new App::TextDocument;
-    TextDocumentEditorView *textDocView = new TextDocumentEditorView {
-                txtDoc, editorWidget, getMainWindow()
-    };
-    editorWidget->setReadOnly(true);
-    editorWidget->setPlainText(pageSource);
-    getMainWindow()->addWindow(textDocView);
+    if (Gui::CustomEditor::isEnabled()) {
+        // Using a temporary file helps with viewing the text file and with syntax highlighting/
+        QTemporaryFile filePageSource(QLatin1String("./pageSourceXXXXXX.html"));
+            if (filePageSource.open()) {
+                filePageSource.write(pageSource.toLocal8Bit());
+                Gui::CustomEditor::openTextFile(filePageSource.fileName());
+            }
+    }
+    else {
+        QPlainTextEdit *editorWidget = new QPlainTextEdit {};
+        App::TextDocument *txtDoc = new App::TextDocument;
+        TextDocumentEditorView *textDocView = new TextDocumentEditorView {
+                    txtDoc, editorWidget, getMainWindow()
+        };
+        editorWidget->setReadOnly(true);
+        editorWidget->setPlainText(pageSource);
+        getMainWindow()->addWindow(textDocView);
+    }
 }
 #endif
 

@@ -33,6 +33,7 @@
 #include "MainWindow.h"
 #include "EditorView.h"
 #include "PythonEditor.h"
+#include "CustomEditor.h"
 #include "BitmapFactory.h"
 #include <Base/Interpreter.h>
 #include <Base/Console.h>
@@ -527,36 +528,46 @@ void PythonDebugger::stepRun()
 
 void PythonDebugger::showDebugMarker(const QString& fn, int line)
 {
-    PythonEditorView* edit = 0;
-    QList<QWidget*> mdis = getMainWindow()->windows();
-    for (QList<QWidget*>::iterator it = mdis.begin(); it != mdis.end(); ++it) {
-        edit = qobject_cast<PythonEditorView*>(*it);
-        if (edit && edit->fileName() == fn)
-            break;
+    if (CustomEditor::isEnabled()) {
+        CustomEditor::showDebugMarker(fn, line);
     }
+    else {
+        PythonEditorView* edit = 0;
+        QList<QWidget*> mdis = getMainWindow()->windows();
+        for (QList<QWidget*>::iterator it = mdis.begin(); it != mdis.end(); ++it) {
+            edit = qobject_cast<PythonEditorView*>(*it);
+            if (edit && edit->fileName() == fn)
+                break;
+        }
 
-    if (!edit) {
-        PythonEditor* editor = new PythonEditor();
-        editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
-        edit = new PythonEditorView(editor, getMainWindow());
-        edit->open(fn);
-        edit->resize(400, 300);
-        getMainWindow()->addWindow(edit);
+        if (!edit) {
+            PythonEditor* editor = new PythonEditor();
+            editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
+            edit = new PythonEditorView(editor, getMainWindow());
+            edit->open(fn);
+            edit->resize(400, 300);
+            getMainWindow()->addWindow(edit);
+        }
+
+        getMainWindow()->setActiveWindow(edit);
+        edit->showDebugMarker(line);
     }
-
-    getMainWindow()->setActiveWindow(edit);
-    edit->showDebugMarker(line);
 }
 
 void PythonDebugger::hideDebugMarker(const QString& fn)
 {
-    PythonEditorView* edit = 0;
-    QList<QWidget*> mdis = getMainWindow()->windows();
-    for (QList<QWidget*>::iterator it = mdis.begin(); it != mdis.end(); ++it) {
-        edit = qobject_cast<PythonEditorView*>(*it);
-        if (edit && edit->fileName() == fn) {
-            edit->hideDebugMarker();
-            break;
+    if (CustomEditor::isEnabled()) {
+        CustomEditor::hideDebugMarker(fn);
+    }
+    else {
+        PythonEditorView* edit = 0;
+        QList<QWidget*> mdis = getMainWindow()->windows();
+        for (QList<QWidget*>::iterator it = mdis.begin(); it != mdis.end(); ++it) {
+            edit = qobject_cast<PythonEditorView*>(*it);
+            if (edit && edit->fileName() == fn) {
+                edit->hideDebugMarker();
+                break;
+            }
         }
     }
 }

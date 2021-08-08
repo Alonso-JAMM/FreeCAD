@@ -48,6 +48,7 @@
 #include "DlgWorkbenchesImp.h"
 #include "Document.h"
 #include "EditorView.h"
+#include "CustomEditor.h"
 #include "FileDialog.h"
 #include "Macro.h"
 #include "MainWindow.h"
@@ -975,15 +976,20 @@ void RecentMacrosAction::activateFile(int id)
     }
     else {
         if (QApplication::keyboardModifiers() == Qt::ShiftModifier){ //open for editing on Shift+click
-            PythonEditor* editor = new PythonEditor();
-            editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
-            PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
-            edit->setDisplayName(PythonEditorView::FileName);
-            edit->open(filename);
-            edit->resize(400, 300);
-            getMainWindow()->addWindow(edit);
+            if (CustomEditor::isEnabled()) {
+                CustomEditor::openTextFile(filename);
+            }
+            else {
+                PythonEditor* editor = new PythonEditor();
+                editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
+                PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
+                edit->setDisplayName(PythonEditorView::FileName);
+                edit->open(filename);
+                edit->resize(400, 300);
+                getMainWindow()->addWindow(edit);
+                edit->setWindowTitle(fi.fileName());
+            }
             getMainWindow()->appendRecentMacro(filename);
-            edit->setWindowTitle(fi.fileName());
         } else { //execute macro on normal (non-shifted) click
             try {
                 getMainWindow()->appendRecentMacro(fi.filePath());

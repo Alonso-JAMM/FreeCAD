@@ -41,6 +41,7 @@
 #include <Gui/Document.h>
 #include <Gui/EditorView.h>
 #include <Gui/TextEdit.h>
+#include <Gui/CustomEditor.h>
 #include <Gui/MainWindow.h>
 #include <Gui/View.h>
 
@@ -95,12 +96,17 @@ private:
             }
 
             if (ext == QLatin1String("pov") || ext == QLatin1String("inc")) {
-                Gui::TextEditor* editor = new Gui::TextEditor();
-                editor->setSyntaxHighlighter(new PovrayHighlighter(editor));
-                Gui::EditorView* edit = new Gui::EditorView(editor, Gui::getMainWindow());
-                edit->open(fileName);
-                edit->resize(400, 300);
-                Gui::getMainWindow()->addWindow(edit);
+                if (Gui::CustomEditor::isEnabled()) {
+                    Gui::CustomEditor::openTextFile(fileName);
+                }
+                else {
+                    Gui::TextEditor* editor = new Gui::TextEditor();
+                    editor->setSyntaxHighlighter(new PovrayHighlighter(editor));
+                    Gui::EditorView* edit = new Gui::EditorView(editor, Gui::getMainWindow());
+                    edit->open(fileName);
+                    edit->resize(400, 300);
+                    Gui::getMainWindow()->addWindow(edit);
+                }
             }
         }
         catch (const Base::Exception& e) {

@@ -665,6 +665,7 @@ SET(Editor_CPP_SRCS
     PythonEditor.cpp
     SyntaxHighlighter.cpp
     TextEdit.cpp
+    CustomEditor.cpp
 )
 SET(Editor_HPP_SRCS
     CallTips.h
@@ -676,6 +677,7 @@ SET(Editor_HPP_SRCS
     PythonEditor.h
     SyntaxHighlighter.h
     TextEdit.h
+    CustomEditor.h
 )
 SET(Editor_SRCS
     ${Editor_CPP_SRCS}

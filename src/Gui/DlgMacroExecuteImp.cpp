@@ -42,6 +42,7 @@
 #include "Document.h"
 #include "EditorView.h"
 #include "PythonEditor.h"
+#include "CustomEditor.h"
 #include "DlgCustomizeImp.h"
 #include "DlgToolbarsImp.h"
 
@@ -331,22 +332,28 @@ void DlgMacroExecuteImp::on_editButton_clicked()
 
     MacroItem * mitem = static_cast<MacroItem *>(item);
 
-    QString file = QString::fromLatin1("%1/%2").arg(dir.absolutePath(), item->text(0));
-    PythonEditor* editor = new PythonEditor();
-    editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
-    PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
-    edit->setDisplayName(PythonEditorView::FileName);
-    edit->open(file);
-    edit->resize(400, 300);
-    getMainWindow()->addWindow(edit);
-    getMainWindow()->appendRecentMacro(file);
 
-    if (mitem->systemWide) {
-        editor->setReadOnly(true);
-        QString shownName;
-        shownName = QString::fromLatin1("%1[*] - [%2]").arg(item->text(0), tr("Read-only"));
-        edit->setWindowTitle(shownName);
+    QString file = QString::fromLatin1("%1/%2").arg(dir.absolutePath(), item->text(0));
+    if (CustomEditor::isEnabled()) {
+        CustomEditor::openTextFile(file, mitem->systemWide);
     }
+    else {
+        PythonEditor* editor = new PythonEditor();
+        editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
+        PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
+        edit->setDisplayName(PythonEditorView::FileName);
+        edit->open(file);
+        edit->resize(400, 300);
+        getMainWindow()->addWindow(edit);
+
+        if (mitem->systemWide) {
+            editor->setReadOnly(true);
+            QString shownName;
+            shownName = QString::fromLatin1("%1[*] - [%2]").arg(item->text(0), tr("Read-only"));
+            edit->setWindowTitle(shownName);
+        }
+    }
+    getMainWindow()->appendRecentMacro(file);
     close();
 }
 
@@ -389,14 +396,20 @@ void DlgMacroExecuteImp::on_createButton_clicked()
                 return;
             }
             file.close();
-            PythonEditor* editor = new PythonEditor();
-            editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
-            PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
-            edit->open(fi.absoluteFilePath());
+            if (CustomEditor::isEnabled()) {
+                CustomEditor::openTextFile(fi.absoluteFilePath());
+            }
+            else {
+                PythonEditor* editor = new PythonEditor();
+                editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
+                PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
+                edit->setDisplayName(PythonEditorView::FileName);
+                edit->open(fi.absoluteFilePath());
+                edit->setWindowTitle(QString::fromLatin1("%1[*]").arg(fn));
+                edit->resize(400, 300);
+                getMainWindow()->addWindow(edit);
+            }
             getMainWindow()->appendRecentMacro(fi.absoluteFilePath());
-            edit->setWindowTitle(QString::fromLatin1("%1[*]").arg(fn));
-            edit->resize(400, 300);
-            getMainWindow()->addWindow(edit);
             close();
         }
     }

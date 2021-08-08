@@ -38,6 +38,7 @@
 #include <Gui/MainWindow.h>
 #include <Gui/TextEdit.h>
 #include <Gui/EditorView.h>
+#include <Gui/CustomEditor.h>
 
 #include <Mod/Fem/App/FemAnalysis.h>
 #include "ActiveAnalysisObserver.h"
@@ -133,18 +134,23 @@ private:
         }
 
         if (ext == QLatin1String("inp")) {
-            Gui::TextEditor* editor = new Gui::TextEditor();
-            editor->setWindowIcon(Gui::BitmapFactory().pixmap(":/icons/fem-solver-inp-editor.svg"));
-            Gui::EditorView* edit = new Gui::EditorView(editor, Gui::getMainWindow());
-            editor->setSyntaxHighlighter(new FemGui::AbaqusHighlighter(editor));
-            edit->setDisplayName(Gui::EditorView::FileName);
-            edit->open(fileName);
-            edit->resize(400, 300);
-            Gui::getMainWindow()->addWindow(edit);
+            if (Gui::CustomEditor::isEnabled()) {
+                Gui::CustomEditor::openTextFile(fileName);
+            }
+            else {
+                Gui::TextEditor* editor = new Gui::TextEditor();
+                editor->setWindowIcon(Gui::BitmapFactory().pixmap(":/icons/fem-solver-inp-editor.svg"));
+                Gui::EditorView* edit = new Gui::EditorView(editor, Gui::getMainWindow());
+                editor->setSyntaxHighlighter(new FemGui::AbaqusHighlighter(editor));
+                edit->setDisplayName(Gui::EditorView::FileName);
+                edit->open(fileName);
+                edit->resize(400, 300);
+                Gui::getMainWindow()->addWindow(edit);
 
-            QFont font = editor->font();
-            font.setFamily(QString::fromLatin1("Arial"));
-            editor->setFont(font);
+                QFont font = editor->font();
+                font.setFamily(QString::fromLatin1("Arial"));
+                editor->setFont(font);
+            }
         }
 
         return Py::None();

@@ -48,6 +48,7 @@
 #include "Macro.h"
 #include "EditorView.h"
 #include "PythonEditor.h"
+#include "CustomEditor.h"
 #include "SoFCDB.h"
 #include "View3DInventor.h"
 #include "SplitView3DInventor.h"
@@ -486,12 +487,17 @@ PyObject* Application::sOpen(PyObject * /*self*/, PyObject *args)
         }
         else if (ext == QLatin1String("py") || ext == QLatin1String("fcmacro") ||
                  ext == QLatin1String("fcscript")) {
-            PythonEditor* editor = new PythonEditor();
-            editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
-            PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
-            edit->open(fileName);
-            edit->resize(400, 300);
-            getMainWindow()->addWindow( edit );
+            if (CustomEditor::isEnabled()) {
+                CustomEditor::openTextFile(fileName);
+            }
+            else {
+                PythonEditor* editor = new PythonEditor();
+                editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
+                PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
+                edit->open(fileName);
+                edit->resize(400, 300);
+                getMainWindow()->addWindow( edit );
+            }
         }
         else {
             Base::Console().Error("File type '%s' not supported\n", ext.toLatin1().constData());
@@ -557,12 +563,17 @@ PyObject* Application::sInsert(PyObject * /*self*/, PyObject *args)
         }
         else if (ext == QLatin1String("py") || ext == QLatin1String("fcmacro") ||
                  ext == QLatin1String("fcscript")) {
-            PythonEditor* editor = new PythonEditor();
-            editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
-            PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
-            edit->open(fileName);
-            edit->resize(400, 300);
-            getMainWindow()->addWindow( edit );
+            if (CustomEditor::isEnabled()) {
+                CustomEditor::openTextFile(fileName);
+            }
+            else {
+                PythonEditor* editor = new PythonEditor();
+                editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
+                PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
+                edit->open(fileName);
+                edit->resize(400, 300);
+                getMainWindow()->addWindow( edit );
+            }
         }
         else {
             Base::Console().Error("File type '%s' not supported\n", ext.toLatin1().constData());
