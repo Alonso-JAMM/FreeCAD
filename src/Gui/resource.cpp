@@ -37,6 +37,7 @@
 #include "DlgGeneralImp.h"
 #include "DlgEditorImp.h"
 #include "DlgSettingsMacroImp.h"
+#include "DlgSettingsCustomEditorImp.h"
 #include "DlgSettingsUnitsImp.h"
 #include "DlgSettingsDocumentImp.h"
 //#include "DlgOnlineHelpImp.h"
@@ -72,6 +73,9 @@ WidgetFactorySupplier::WidgetFactorySupplier()
     new PrefPageProducer<DlgSettingsSelection>     ( QT_TRANSLATE_NOOP("QObject","General") );
     new PrefPageProducer<DlgSettingsCacheDirectory>( QT_TRANSLATE_NOOP("QObject","General") );
     new PrefPageProducer<DlgSettingsEditorImp>     ( QT_TRANSLATE_NOOP("QObject","General") );
+#if defined BUILD_KTEXTEDITOR
+    new PrefPageProducer<DlgSettingsCustomEditorImp>(QT_TRANSLATE_NOOP("QObject","Custom-Editor") );
+#endif
     new PrefPageProducer<DlgReportViewImp>         ( QT_TRANSLATE_NOOP("QObject","General") );
     new PrefPageProducer<DlgSettingsMacroImp>      ( QT_TRANSLATE_NOOP("QObject","General") );
     new PrefPageProducer<DlgSettingsUnitsImp>      ( QT_TRANSLATE_NOOP("QObject","General") );

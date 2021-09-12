@@ -23,13 +23,65 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <QList>
-#include <QFileInfo>
 #endif
 
 #include "CustomEditor.h"
 
+#if defined BUILD_KTEXTEDITOR
+#include "KTextEditor/KEditorView.h"
+#include "MainWindow.h"
+#endif
+
 using namespace Gui;
+
+#if defined BUILD_KTEXTEDITOR
+void CustomEditor::openTextFile(const QString &filename, bool readOnly) {
+    KEditorView* edit = new KEditorView(getMainWindow());
+    edit->openFile(filename, readOnly);
+    getMainWindow()->addWindow(edit);
+}
+
+bool CustomEditor::isEnabled() {
+    ParameterGrp::handle hGrp = App::GetApplication().GetUserParameter().
+        GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("CustomEditor");
+    bool use_keditor = hGrp->GetBool("EnableKTextEditor", false);
+
+    if (use_keditor) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+void CustomEditor::showDebugMarker(const QString& filename, int line) {
+    (void)filename;
+    (void)line;
+}
+
+void CustomEditor::hideDebugMarker(const QString& filename) {
+    (void)filename;
+}
+
+bool CustomEditor::isCustomEditor(MDIView* mdi) {
+    (void)mdi;
+    return false;
+}
+
+QStringList CustomEditor::getUndoActions(MDIView* mdi) {
+    (void)mdi;
+    QStringList vecUndos = QStringList();
+    return vecUndos;
+}
+
+QStringList CustomEditor::getRedoActions(MDIView* mdi) {
+    (void)mdi;
+    QStringList vecUndos = QStringList();
+    return vecUndos;
+}
+
+
+#else
 
 void CustomEditor::openTextFile(const QString &filename, bool readOnly) {
     (void)filename;
@@ -66,3 +118,4 @@ QStringList CustomEditor::getRedoActions(MDIView* mdi) {
     return vecUndos;
 }
 
+#endif // BUILD_KTEXTEDITOR

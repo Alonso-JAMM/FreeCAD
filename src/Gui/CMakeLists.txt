@@ -338,6 +338,7 @@ SET(Gui_UIC_SRCS
     DlgSettingsImage.ui
     DlgSettingsLazyLoaded.ui
     DlgSettingsMacro.ui
+    DlgSettingsCustomEditor.ui
     DlgCheckableMessageBox.ui
     DlgToolbars.ui
     DlgWorkbenches.ui
@@ -574,6 +575,7 @@ SET(Dialog_Settings_CPP_SRCS
     DlgSettingsImageImp.cpp
     DlgSettingsLazyLoadedImp.cpp
     DlgSettingsMacroImp.cpp
+    DlgSettingsCustomEditorImp.cpp
 )
 SET(Dialog_Settings_HPP_SRCS
     DlgEditorImp.h
@@ -592,6 +594,7 @@ SET(Dialog_Settings_HPP_SRCS
     DlgSettingsImageImp.h
     DlgSettingsLazyLoadedImp.h
     DlgSettingsMacroImp.h
+    DlgSettingsCustomEditorImp.h
 )
 SET(Dialog_Settings_SRCS
     ${Dialog_Settings_CPP_SRCS}
@@ -612,6 +615,7 @@ SET(Dialog_Settings_SRCS
     DlgSettingsImage.ui
     DlgSettingsLazyLoaded.ui
     DlgSettingsMacro.ui
+    DlgSettingsCustomEditor.ui
 )
 SOURCE_GROUP("Dialog\\Settings" FILES ${Dialog_Settings_SRCS})
 
@@ -683,6 +687,21 @@ SET(Editor_SRCS
     ${Editor_CPP_SRCS}
     ${Editor_HPP_SRCS}
 )
+if(BUILD_KTEXTEDITOR)
+    find_package(KF5TextEditor)
+    list(APPEND FreeCADGui_LIBS KF5::TextEditor)
+    add_definitions(-DBUILD_KTEXTEDITOR)
+    SET(KTextEditor_HPP_SRCS
+        KTextEditor/KEditorView.h
+    )
+    SET(KTextEditor_CPP_SRCS
+        KTextEditor/KEditorView.cpp
+    )
+    SET(KTextEditor_SRCS
+        ${KTextEditor_CPP_SRCS}
+        ${KTextEditor_HPP_SRCS}
+    )
+endif()
 SOURCE_GROUP("Editor" FILES ${Editor_SRCS})
 
 # The help system
@@ -1216,6 +1235,7 @@ SET(FreeCADGui_SRCS
     ${Dialog_Settings_SRCS}
     ${Dock_Windows_SRCS}
     ${Editor_SRCS}
+    ${KTextEditor_SRCS}
     ${Help_SRCS}
     ${Inventor_SRCS}
     ${Language_SRCS}
