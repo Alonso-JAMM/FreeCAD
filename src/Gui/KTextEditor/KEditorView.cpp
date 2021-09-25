@@ -39,6 +39,12 @@
 
 #include "BitmapFactory.h"
 #include "MainWindow.h"
+#include "Application.h"
+#include "Macro.h"
+
+#include <Base/Interpreter.h>
+#include <Base/Parameter.h>
+#include <Base/Exception.h>
 
 using namespace Gui;
 namespace Gui {
@@ -67,6 +73,41 @@ KEditorView::~KEditorView(){
     delete d->view;
     delete d->doc;
     delete d;
+}
+
+bool KEditorView::onMsg(const char* pMsg, const char**) {
+    // don't allow any actions if the editor is being closed
+    if (d->aboutToClose)
+        return false;
+
+    if (strcmp(pMsg, "Run") == 0) {
+        executeScript();
+        return true;
+    }
+    if (strcmp(pMsg, "Save") == 0) {
+        saveFile();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+ * Checks if the action \a pMsg is available. This is for enabling/disabling
+ * the corresponding buttons or menu items for this action. From EditorView
+ */
+bool KEditorView::onHasMsg(const char* pMsg) const {
+    // don't allow any actions if the editor is being closed
+    if (d->aboutToClose)
+        return false;
+    if (strcmp(pMsg, "Run") == 0)
+        return true;
+    if (strcmp(pMsg, "Save") == 0)
+        return d->doc->isModified();
+    else {
+        return false;
+    }
 }
 
 bool KEditorView::canClose(void) {
@@ -114,6 +155,25 @@ void KEditorView::openFile(const QString &fileName, bool readOnly) {
     }
 }
 
+
+/**
+ * Runs the opened script in the macro manager.
+ */
+void KEditorView::executeScript() {
+    // always save the macro when it is modified
+    if (KEditorView::onHasMsg("Save"))
+        KEditorView::onMsg("Save", 0);
+    try {
+        Application::Instance->macroManager()->run(Gui::MacroManager::File,fileName().toUtf8());
+    }
+    catch (const Base::SystemExitException&) {
+        // handle SystemExit exceptions
+        Base::PyGILStateLocker locker;
+        Base::PyException e;
+        e.ReportException();
+    }
+}
+
 bool KEditorView::event(QEvent* e) {
     // HACK: when keys are pressed QEvent::ShortcutOverride is emitted. If we
     // accept all the key events except for the modifiers and other special keys,
@@ -133,6 +193,19 @@ bool KEditorView::event(QEvent* e) {
         }
     }
     return QWidget::event(e);
+}
+
+void KEditorView::closeEvent(QCloseEvent* event) {
+    MDIView::closeEvent(event);
+    if (event->isAccepted()) {
+        d->aboutToClose = true;
+        Gui::MainWindow* mw = Gui::getMainWindow();
+        mw->updateEditorActions();
+    }
+}
+
+QString KEditorView::fileName() const {
+    return d->doc->url().path();
 }
 
 bool KEditorView::saveFile() {

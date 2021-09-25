@@ -48,20 +48,27 @@ public:
 
     void openFile(const QString &fileName, bool readOnly = false);
 
+    bool onMsg(const char* pMsg, const char**);
+    bool onHasMsg(const char* pMsg) const;
+
     bool canClose(void);
+
+    QString fileName() const;
+
+public Q_SLOTS:
+    void executeScript();
 
 protected:
     // event handling used to solve keyboard input issues (some keyboard inputs
     // not recognized by KTextEditor)
     bool event(QEvent* e);
+    void closeEvent(QCloseEvent* e);
 
 private:
     bool saveFile();
 
 private:
     KEditorViewP* d;
-
-
 };
 
 }; // namespace Gui
