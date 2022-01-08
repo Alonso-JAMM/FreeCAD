@@ -29,6 +29,8 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QAction>
+#include <QLatin1String>
+#include <QKeySequence>
 #endif
 
 #include "KEditorView.h"
@@ -36,6 +38,7 @@
 #include <KTextEditor/Document>
 #include <KTextEditor/Editor>
 #include <KTextEditor/View>
+#include <KStandardAction>
 
 #include "BitmapFactory.h"
 #include "MainWindow.h"
@@ -67,6 +70,15 @@ KEditorView::KEditorView(QWidget* parent)
     d->doc = editor->createDocument(this);
     d->view = d->doc->createView(this);
     setCentralWidget(d->view);
+
+    Gui::MainWindow* mw = Gui::getMainWindow();
+    connect(this, SIGNAL(copyAvailable(bool)), mw, SLOT(updateEditorActions()));
+    connect(d->view, SIGNAL(selectionChanged(KTextEditor::View*)), 
+            this, SLOT(selectionChanged(KTextEditor::View*)));
+    
+    // Remove the shortcuts to duplicated actions (these actions are handled by FreeCAD)
+    QAction* copyAction = d->view->action(KStandardAction::name(KStandardAction::Copy));
+    copyAction->setShortcut(QKeySequence());   
 }
 
 KEditorView::~KEditorView(){
@@ -88,9 +100,13 @@ bool KEditorView::onMsg(const char* pMsg, const char**) {
         saveFile();
         return true;
     }
-    else {
-        return false;
+    else if (strcmp(pMsg, "Copy") == 0) {
+        QAction* copyAction = d->view->action(KStandardAction::name(KStandardAction::Copy));
+        copyAction->trigger();
+        return true;
     }
+
+    return false;
 }
 
 /**
@@ -105,9 +121,10 @@ bool KEditorView::onHasMsg(const char* pMsg) const {
         return true;
     if (strcmp(pMsg, "Save") == 0)
         return d->doc->isModified();
-    else {
-        return false;
-    }
+    else if (strcmp(pMsg, "Copy") == 0)
+        return d->view->selection();
+    
+    return false;
 }
 
 bool KEditorView::canClose(void) {
@@ -172,6 +189,12 @@ void KEditorView::executeScript() {
         Base::PyException e;
         e.ReportException();
     }
+}
+
+
+void KEditorView::selectionChanged(KTextEditor::View *view) {
+    Q_UNUSED(view);
+    copyAvailable(true);
 }
 
 bool KEditorView::event(QEvent* e) {

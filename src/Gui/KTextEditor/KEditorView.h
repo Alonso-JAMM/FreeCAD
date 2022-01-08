@@ -58,6 +58,12 @@ public:
 public Q_SLOTS:
     void executeScript();
 
+private Q_SLOTS:
+    void selectionChanged(KTextEditor::View*);
+
+Q_SIGNALS:
+    void copyAvailable(bool);
+
 protected:
     // event handling used to solve keyboard input issues (some keyboard inputs
     // not recognized by KTextEditor)
